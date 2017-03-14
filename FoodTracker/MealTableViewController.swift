@@ -2,8 +2,8 @@
 //  MealTableViewController.swift
 //  FoodTracker
 //
-//  Created by Jane Appleseed on 11/15/16.
-//  Copyright © 2016 Apple Inc. All rights reserved.
+//  Created by Ali Barış Öztekin on 2017-03-13.
+//  Copyright © 2017 Ali Barış Öztekin. All rights reserved.
 //
 
 import UIKit
@@ -14,7 +14,25 @@ class MealTableViewController: UITableViewController {
     //MARK: Properties
     
     var meals = [Meal]()
-
+    
+    struct UserCredentials{
+        var username: String
+        var password: String
+        var token:String
+        
+        init?(username:String?, password:String?, token:String? ) {
+            guard let username = username, let password = password, let token = token else {
+                return nil
+            }
+            self.username = username
+            self.password = password
+            self.token = token
+        }
+    }
+    
+    var credentials: UserCredentials!
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -22,6 +40,8 @@ class MealTableViewController: UITableViewController {
         navigationItem.leftBarButtonItem = editButtonItem
         
         // Load any saved meals, otherwise load sample data.
+        checkUserCredentials()
+        
         if let savedMeals = loadMeals() {
             meals += savedMeals
         }
@@ -29,6 +49,8 @@ class MealTableViewController: UITableViewController {
             // Load the sample data.
             loadSampleMeals()
         }
+        
+        
     }
 
     override func didReceiveMemoryWarning() {
@@ -133,6 +155,9 @@ class MealTableViewController: UITableViewController {
             let selectedMeal = meals[indexPath.row]
             mealDetailViewController.meal = selectedMeal
             
+          case "calissanaSalak":
+            os_log("User Credentials", log: OSLog.default, type: .debug)
+
         default:
             fatalError("Unexpected Segue Identifier; \(segue.identifier)")
         }
@@ -197,5 +222,23 @@ class MealTableViewController: UITableViewController {
     private func loadMeals() -> [Meal]?  {
         return NSKeyedUnarchiver.unarchiveObject(withFile: Meal.ArchiveURL.path) as? [Meal]
     }
+    
+    private func checkUserCredentials() {
+        
+        let usernameFromDefaults = UserDefaults.standard.string(forKey: "username")
+        let passwordFromDefaults = UserDefaults.standard.string(forKey: "password")
+        let tokenFromDefaults = UserDefaults.standard.string(forKey: "token")
+        guard let username = usernameFromDefaults, let password = passwordFromDefaults else {
+            
+            self.performSegue(withIdentifier: "calissanaSalak", sender: self)
+            return
+        }
+        
+        guard let tempCredentials =  UserCredentials.init(username: username, password: password, token: tokenFromDefaults) else {
+            return
+        }
+        credentials = tempCredentials
+    }
+    
 
 }
